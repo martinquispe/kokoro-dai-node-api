@@ -1,3 +1,7 @@
+/*------------------------------------------------------**
+** Server-related tasks                                 **
+**------------------------------------------------------*/
+
 // Dependencies
 const http = require('http');
 const https = require('https');
@@ -6,7 +10,7 @@ const StringDecoder = require('string_decoder').StringDecoder;
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
-const config = require('./config/index');
+const config = require('./lib/config/index');
 const router = require('./router');
 
 /*------------------------------------------------------**
@@ -35,16 +39,11 @@ server.unifiedServer = function(req, res) {
   const parsedUrl = url.parse(req.url, true);
 
   // Get the path
-  const path = parsedUrl.pathname.replace(/^\/+|\/+$/g, '');
+  const path = parsedUrl.pathname.replace(/^\/+|\/+$/g, '');  
 
-  // get the query string as an object
-  const queryStringObject = parsedUrl.query;
-
-  // Get the method
-  var method = req.method.toLowerCase();
-
-  //Get the headers as an object
-  var headers = req.headers;
+  // Get the method and headers
+  const method = req.method.toLowerCase(),
+    headers = req.headers;
 
   // Get the payload, if any
   const decoder = new StringDecoder('utf-8');
@@ -60,7 +59,7 @@ server.unifiedServer = function(req, res) {
     const data = {
       req: req,
       path: path,
-      queryStringObject: queryStringObject,
+      queryStringObject: parsedUrl.query,   // get the query string as an object
       method: method,
       headers: headers,
       payload: buffer,

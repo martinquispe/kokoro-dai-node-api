@@ -9,8 +9,8 @@ const helpers = require('../helpers/index');
 **------------------------------------------------------*/
 const tokenHandlers = {
   handlers: function(req,callback){    
-    if(_tokenCtrl.getAvailableMethods().indexOf(req.method) > -1){
-      let data = (req.method !== "get") ? JSON.parse(req.payload) : req.queryStringObject;
+    if(_tokenCtrl.getAvailableMethods().indexOf(req.method) > -1){      
+      let data = (req.method !== "get" && req.method !== "delete") ? JSON.parse(req.payload) : req.queryStringObject;
       _tokens[req.method](data,callback);
     } else {
       callback(405);
@@ -28,13 +28,13 @@ _tokens  = {};
 **------------------------------------------------------*/
 _tokens.post = function(data, callback){
   let password = helpers.isNotEmptyString(data.password) ? data.password.trim() : false;
-  let userId = helpers.isNotEmptyString(data.userId) ? data.userId.trim() : false;
+  let username = helpers.isNotEmptyString(data.username) ? data.username.trim() : false;
 
-  if(userId && password){
+  if(username && password){
     // Response a new token object, otherwise error
     _tokenCtrl.create(data, callback);  
   }else{
-    callback(400,{'Error' : "Missing userId & password: the user's id & password are required"});
+    callback(400,{'Error' : "Missing username & password: the username & password are required"});
   }
 };
 
@@ -103,7 +103,7 @@ _tokens.delete = function(data,callback){
         callback(404, err);
     });    
   } else {
-    callback(400,{'Error' : "Missing id: the user's id is required"});
+    callback(400,{'Error' : "Missing id: the token's id is required", data: data});
   }
 };
 

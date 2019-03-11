@@ -46,15 +46,17 @@ _users.get = function(data, headers, callback){
   // Checking the queryStringObject for the user token
   let token = headers.token && typeof(headers.token) == 'string' ? headers.token.trim() : false;
 
-  if(!token)
+  if(!token){
     callback(true, {message: "Access denied: you need a valid token for this action"});  
+    return
+  }
   
   // Verify the user token
   _tokenCtrl.verifyToken(token, function(err, tokenData){
     if(!err && tokenData){
       // Get the user id, if any
       let id = typeof(data.id) == 'string' ? data.id.trim() : false;
-      if(id && tokenData.userId == id)
+      if(id && tokenData.username == id)
         // Getting data of a particular user
         _userCtrl.getOne(id, callback);
       else{
@@ -64,8 +66,9 @@ _users.get = function(data, headers, callback){
           // Getting the users collection
           _userCtrl.getAll(data, callback);         
       }
-    }else
-      callback(true, err);
+    }else{
+      callback(403, err);      
+    }
    });  
 };
 
@@ -80,15 +83,19 @@ _users.get = function(data, headers, callback){
 _users.put = function(data, headers, callback){
   let token = headers.token && typeof(headers.token) == 'string' ? headers.token.trim() : false;
 
-  if(!token)
+  if(!token){
     callback(true, {message: "Access denied: you need a valid token for this action"});
+    return
+  }
   
-  if(!data.id)
+  if(!data.username){
     callback(true, {message: "Missing field id for update the user"})
+    return    
+  }
 
   _tokenCtrl.verifyToken(token, function(err, tokenData){
     if(!err && tokenData){
-      if(tokenData.userId == data.id)
+      if(tokenData.username == data.username)
         _userCtrl.update(data, callback);
       else
         callback(true,{message: 'Only the user data owner can update its record.'})  
@@ -109,18 +116,22 @@ _users.put = function(data, headers, callback){
 **--------------------------------------------------------------*/
 _users.delete = function(data, headers, callback){
   // Check that phone number is valid
-  let id = typeof(data.id) == 'string' ? data.id.trim() : false;
+  let id = typeof(data.username) == 'string' ? data.username.trim() : false;
   let token = headers.token && typeof(headers.token) == 'string' ? headers.token.trim() : false;
 
-  if(!token)
+  if(!token){
     callback(403, {message: "Access denied: you need a valid token for this action"});
+    return
+  }
 
-  if(!id)
+  if(!id){
     callback(406,{'Error' : "Missing id: the user's id is required"});
+    return
+  }
 
   _tokenCtrl.verifyToken(token, function(err, tokenData){    
     if(!err && tokenData){
-      if(tokenData.userId == id){
+      if(tokenData.username == id){
         _userCtrl.getOne(id, function(err, userData){
           if(!err && userData){
             let checks = typeof(userData.checks) == 'object' && userData.checks instanceof Array ? userData.checks : [];
